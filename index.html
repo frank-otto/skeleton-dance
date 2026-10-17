@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Skeleton Dance – a 3D graveyard dance battle</title>
+<meta name="description" content="Midnight in the graveyard: lead a crew of 3D skeletons in a rhythm dance battle to Saint-Saëns' Danse macabre. Combos raise more skeletons from their graves. Dance Builder, Easy/Medium/Hard, kids mode, EN/DE.">
+<meta name="theme-color" content="#06070f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%92%80%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-state="menu">
+<canvas id="game" aria-label="Skeleton Dance game"></canvas>
+<canvas id="lanes" aria-hidden="true"></canvas>
+<div id="pops"></div>
+<div id="banner"></div>
+<div id="hud">
+  <div class="chip" id="hScoreBox"><small data-t="score">Score</small><b id="hScore">0</b></div>
+  <div class="chip" id="hComboBox"><small data-t="combo">Combo</small><b id="hCombo">0</b></div>
+  <div class="chip" id="hAccBox"><small data-t="acc">Accuracy</small><b id="hAcc">–</b></div>
+  <div class="chip" id="hGrooveBox"><small data-t="groove">Groove</small><i class="bar"><i id="hGroove"></i></i></div>
+  <div class="chip" id="hCrewBox"><small data-t="crew">Crew</small><b>💀 <span id="hCrew">1/13</span></b></div>
+</div>
+<div id="prog"><i id="hProg"></i></div>
+<div id="hint"></div>
+<div id="top">
+  <button id="btnQuit" class="pill" aria-label="Finish">✕</button>
+  <button id="btnQ" class="pill">⚙</button>
+  <button id="btnSound" class="pill on" aria-label="Sound">🔊</button>
+  <button id="btnLang" class="pill">DE</button>
+</div>
+<div id="toast"></div>
+<section id="menu" class="panel show">
+  <h1><span class="sk">💀</span> <span data-t="title">Skeleton Dance</span></h1>
+  <p class="sub" data-t="sub"></p>
+  <ul class="how">
+    <li><span>🦴</span><em data-t="h1"></em></li>
+    <li><span>⌨️</span><em data-t="h2"></em></li>
+    <li><span>🪦</span><em id="h3"></em></li>
+  </ul>
+  <div id="songs" role="group">
+    <button data-s="midnight"><b></b><small></small></button><button data-s="waltz"><b></b><small></small></button><button data-s="frenzy"><b></b><small></small></button>
+  </div>
+  <div id="diff" role="group"><small data-t="difficulty"></small><button data-d="easy" data-t="d_easy"></button><button data-d="medium" data-t="d_medium"></button><button data-d="hard" data-t="d_hard"></button></div>
+  <button id="btnPlay" class="big" data-t="play">Dance!</button>
+  <div class="row"><button id="btnBuild" data-t="build">Dance Builder</button><button id="btnKids" class="toggle" aria-pressed="false"><i></i><span data-t="kids">Kids mode</span></button></div>
+  <p class="tip" data-t="music"></p>
+</section>
+<section id="build" class="dock">
+  <div class="bHead"><b data-t="bTitle">Dance Builder</b><small data-t="bHelp"></small></div>
+  <div id="bPal"></div>
+  <div id="bSlots"></div>
+  <div class="row"><button id="bPlay" class="main"></button><button id="bRandom" data-t="bRandom"></button><button id="bClear" data-t="bClear"></button><button id="bForm"></button><button id="bDone" data-t="bDone"></button></div>
+</section>
+<section id="end" class="panel">
+  <h2 id="eTitle"></h2>
+  <div class="scoreRow"><div id="eScore" class="score">0</div><div id="eGrade" class="grade"></div></div>
+  <div id="eBest" class="best"></div>
+  <div id="eStats" class="stats"></div>
+  <label class="name"><span data-t="name">Your name</span><input id="eName" maxlength="18" value="Player" autocomplete="off"></label>
+  <div class="row"><button id="btnCard" data-t="card"></button><button id="btnShare" data-t="share"></button></div>
+  <div class="row"><button id="btnAgain" class="big" data-t="again"></button><button id="btnMenu" data-t="menu"></button></div>
+</section>
+<script src="js/sounds-src.js"></script>
+<script src="js/game.bundle.js"></script>
+</body>
+</html>
