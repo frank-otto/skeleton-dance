@@ -149,6 +149,9 @@ async def main():
         await ctx.close()
         # auto quality does not drop at startup even on a slow software renderer
         ctx, pg, logs = await page(b, auto_q=True, viewport={'width': 1280, 'height': 800}); await pg.wait_for_timeout(5000)
+        await pg.click('#btnPlay'); await pg.wait_for_timeout(2500)
+        cr = await pg.evaluate('({p: __sd.cam().p, gt: __sd.S.gt, st: __sd.S.state})'); dist = sum(v * v for v in cr['p']) ** .5
+        check('real-time loop: clock runs forward, camera stays framed on the crew', cr['gt'] > 0 and 6 < dist < 14 and cr['st'] == 'play', cr)
         check('auto quality does not step down at startup', await pg.evaluate('__sd.quality()') == 'mid', await pg.evaluate('[__sd.quality(), __sd.fps.since]'))
         await ctx.close()
         # mobile touch

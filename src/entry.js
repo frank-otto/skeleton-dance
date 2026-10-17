@@ -393,7 +393,7 @@ function keepClear(p) { // camera never enters props (graves, trees, crypt, lant
   for (const c of W.colliders) { _v.subVectors(p, c.p); _v.y *= .5; const dd = _v.length(), m = c.r + .9; if (dd < m) p.addScaledVector(_v.normalize(), m - dd); }
   p.y = Math.max(p.y, .7); return p; }
 function step(dt) {
-  dt = Math.min(dt, 1 / 20); S.gt += dt; S.pel += dt;
+  dt = Math.max(0, Math.min(dt || 0, 1 / 20)); S.gt += dt; S.pel += dt; // rAF stamps can precede performance.now(): never step backwards
   for (let i = timers.length - 1; i >= 0; i--) if (timers[i].t <= S.gt) { const f = timers[i].f; timers.splice(i, 1); f(); }
   const st = S.state; let beat = 0, bar = 0;
   if (st === 'play') { beat = Math.max(0, playStep(dt)); bar = Math.floor(beat / 3); S.energy = lerp(S.energy, clamp(.35 + S.combo / 40 + S.crewN / 24, .3, 1.1), dt * 1.5); }
@@ -435,7 +435,7 @@ applyQuality(S.q); applyLang(); toMenu();
 try { renderer.compile(scene, camera); } catch (e) {}
 for (let i = 0; i < 60; i++) step(1 / 30);
 let last = performance.now();
-function frameLoop(now) { const dt = (now - last) / 1000; last = now; if (!window.__sdManual) { step(dt); render(); fpsTick(dt); } else render(); requestAnimationFrame(frameLoop); }
+function frameLoop(now) { const dt = Math.max(0, (now - last) / 1000); last = Math.max(last, now); if (!window.__sdManual) { step(dt); render(); fpsTick(dt); } else render(); requestAnimationFrame(frameLoop); }
 requestAnimationFrame(frameLoop);
 const laneScreen = i => ({ x: laneX(i), y: LG.hit });
 window.__sd = { S, start, end, step: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); render(); }, stepq: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); }, log: A.log, quality: q => q ? applyQuality(q, true) : S.q, renderer,
