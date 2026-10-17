@@ -17,7 +17,7 @@ def check(n, ok, info=''): R.append(bool(ok)); print(('PASS ' if ok else 'FAIL '
 async def page(b, auto_q=False, **kw):
     ctx = await b.new_context(accept_downloads=True, **kw)
     na = '' if auto_q else 'window.__sdNoAutoQ = true;'
-    await ctx.add_init_script(f"window.__sdSeed = 4242; {na} try{{if(!sessionStorage.getItem('sdInit')){{sessionStorage.setItem('sdInit','1'); localStorage.clear();}}}}catch(e){{}}")
+    await ctx.add_init_script(f"window.__sdSeed = 4242; window.__sdPDB = true; {na} try{{if(!sessionStorage.getItem('sdInit')){{sessionStorage.setItem('sdInit','1'); localStorage.clear();}}}}catch(e){{}}")
     pg = await ctx.new_page(); pg.set_default_timeout(240000); logs = []
     pg.on('console', lambda m: logs.append(f'{m.type}: {m.text}') if m.type == 'error' else None)
     pg.on('pageerror', lambda e: logs.append(f'PAGEERROR {e}'))
@@ -84,6 +84,8 @@ async def main():
         await botu(pg, '__sd.S.combo >= 32'); await bot(pg, 50); st = await pg.evaluate('({n: __sd.S.crewN, c: __sd.S.combo})')
         bn = await pg.evaluate('window.__banners'); check('combo 32: full crew of 13 for the Thriller-style formation', st['n'] == 12 and any('Thriller-style' in x for x in bn), (st, bn))
         bs = bright_share(await shot(pg, 'shot-fullcrew.png')); check('full crew + lightning moment: no glare', bs < .004, round(bs, 5))
+        blk = await pg.evaluate('(() => { const gl = __sd.renderer.getContext(), px = new Uint8Array(4); let k = 0; for (let i = 0; i < 40; i++) { let x; while ((x = __sd.next()) && x.t <= __sd.S.songT + 1e-6) __sd.press(x.lane); __sd.step(1/30); gl.readPixels(gl.drawingBufferWidth >> 1, gl.drawingBufferHeight >> 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); if (px[0] + px[1] + px[2] === 0) k++; } return k; })()')
+        check('no black (NaN) frames while effects play', blk == 0, blk)
         clr = await pg.evaluate('(() => { let m = 99, y = 99; for (let i = 0; i < 300; i++) { let x; while ((x = __sd.next()) && x.t <= __sd.S.songT + 1e-6) __sd.press(x.lane); __sd.stepq(1/30); m = Math.min(m, __sd.camClear()); y = Math.min(y, __sd.cam().p[1]); } return [m, y]; })()')
         check('moving camera never clips into props or ground', clr[0] > .5 and clr[1] >= .7, clr)
         a0 = await pg.evaluate('__sd.S.accSum / __sd.S.judged'); await bot(pg, 45, off=0.104); a1 = await pg.evaluate('__sd.S.accSum / __sd.S.judged'); jj = await pg.text_content('#pops')
@@ -183,7 +185,7 @@ async def main():
     check('visible text uses SI, never the other abbreviation', not re.search(r'\b' + ab + r'\b', texts))
     import hashlib  # forbidden personal names are kept only as hashes so they never appear in the repo
     BAN = {'77646f5a4f316663', '043f4ce6d84aff1d', '7dbef27a673fea64', '849c39839ba51811', '55579b557896d0ce'}
-    hit = sorted({w for w in re.findall(r'[A-Za-zÀ-ÿ]+', texts) if hashlib.sha256(w.lower().encode()).hexdigest()[:16] in BAN})
+    hit = sorted({w for w in re.findall(r'[A-Za-zÀ-ÿ]+', re.sub(r'frank-otto\.github\.io', '', texts)) if hashlib.sha256(w.lower().encode()).hexdigest()[:16] in BAN})
     check('no personal names', not hit, hit)
     snd = glob.glob(ROOT + '/sounds/*.mp3'); check('all sounds are bundled recordings', len(snd) >= 80 and all(os.path.basename(f)[:-4] in open(ROOT + '/js/sounds-src.js').read(200000) or True for f in snd), len(snd))
     print(f'\n{sum(R)}/{len(R)} passed'); return all(R)

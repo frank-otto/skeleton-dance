@@ -43,7 +43,7 @@ const songTitle = id => S.lang === 'de' ? SONGS[id].titleDe : SONGS[id].title;
 
 // ---------------- renderer / scene ----------------
 const canvas = $('game');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: !!window.__sdPDB }); // PDB only for deterministic frame capture
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const W = createWorld(renderer, QUALITY[S.q], 9); const scene = W.scene;
 const camera = new THREE.PerspectiveCamera(45, 1, .1, 120);

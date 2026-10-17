@@ -69,7 +69,7 @@ function cloudTexture(seed) { const [c, g] = cv(512, 256), r = rnd(seed); for (l
 
 export const FLOOR_R = 4.3;
 export function createWorld(renderer, q, seed = 9) {
-  const W = { scene: new THREE.Scene(), soft: softTexture(), smokeTex: smokeTexture(), t: 0, colliders: [], graves: [], lanterns: [], fogs: [], clouds: [], cracks: [], wisps: null, flash: 0, react: 0, beat: 0 };
+  const W = { scene: new THREE.Scene(), soft: softTexture(), smokeTex: smokeTexture(), t: 0, colliders: [], graves: [], lanterns: [], fogs: [], clouds: [], cracks: [], wisps: null, flash: 0, react: 0, beat: 0, fogBurst: 0, energy: .3 };
   const S = W.scene; S.background = new THREE.Color('#06070f'); S.fog = new THREE.FogExp2('#0b0d1a', .032);
   const r = rnd(seed);
   // sky dome with a vertical gradient + stars
@@ -147,7 +147,7 @@ export function createWorld(renderer, q, seed = 9) {
   { const n = Math.round(160 * (q.parts || 1)); const p = new Float32Array(n * 3); W.wispData = []; for (let i = 0; i < n; i++) { const a = r() * Math.PI * 2, R = 5 + r() * 9; p[i * 3] = Math.sin(a) * R; p[i * 3 + 1] = .3 + r() * 3; p[i * 3 + 2] = Math.cos(a) * R - 2; W.wispData.push({ a, R, y: p[i * 3 + 1], ph: r() * 9, sp: .05 + r() * .1 }); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3)); W.wisps = new THREE.Points(g, new THREE.PointsMaterial({ map: W.soft, color: '#9affb0', size: .12, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending })); S.add(W.wisps); }
   // ground cracks (decals that tear open on big moments)
-  const ctex = crackTexture(seed + 4); for (let i = 0; i < 3; i++) { const m = new THREE.MeshBasicMaterial({ map: ctex, color: '#ff7a2a', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2 }); const d = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), m); d.rotation.x = -Math.PI / 2; d.rotation.z = i * 2.1; d.position.set([0, -2.2, 2.3][i], .106 + i * .001, [1.2, -1.5, -1.3][i]); d.scale.setScalar(.01); S.add(d); W.cracks.push({ d, m, k: 0, size: [3.6, 2.8, 2.8][i] }); }
+  const ctex = crackTexture(seed + 4); for (let i = 0; i < 3; i++) { const m = new THREE.MeshBasicMaterial({ map: ctex, color: '#ff7a2a', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2 }); const d = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), m); d.rotation.x = -Math.PI / 2; d.rotation.z = i * 2.1; d.position.set([0, -2.2, 2.3][i], .106 + i * .001, [1.2, -1.5, -1.3][i]); d.scale.setScalar(.01); S.add(d); W.cracks.push({ d, m, k: 0, life: 0, size: [3.6, 2.8, 2.8][i] }); d.visible = false; }
   // lightning bolt ribbons
   W.boltMat = new THREE.MeshBasicMaterial({ color: '#b8c8ff', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide }); W.bolt = new THREE.Group(); S.add(W.bolt);
   // lights
@@ -170,7 +170,7 @@ export function updateWorld(W, t, dt, beat) {
   W.stage.forEach((L, i) => { const a = t * .5 + i * Math.PI; L.target.position.set(Math.sin(a) * 2.2, 0, -.6 + Math.cos(a * .7) * 1.5); L.intensity = (24 + pulse * 18 * (W.energy || .3)) * (1 + W.react * .3); });
   W.doorM.emissiveIntensity = .15 + W.react * .4;
   const p = W.wisps.geometry.attributes.position; for (let i = 0; i < W.wispData.length; i++) { const d = W.wispData[i]; d.a += dt * d.sp * .2; p.setXYZ(i, Math.sin(d.a) * d.R, d.y + Math.sin(t * .8 + d.ph) * .3, Math.cos(d.a) * d.R - 2); } p.needsUpdate = true; W.wisps.material.opacity = .45 + .2 * Math.sin(t * 1.3);
-  for (const c of W.cracks) { if (c.k > 0) { c.k = Math.min(1, c.k + dt * 1.6); c.life -= dt; } const open = c.k > 0 ? 1 - Math.pow(1 - c.k, 3) : 0; c.d.scale.setScalar(.01 + open * c.size); c.m.opacity = open * (c.life > 0 ? .42 + pulse * .18 : Math.max(0, .42 + c.life * .14)); if (c.life < -3) { c.k = 0; c.m.opacity = 0; } }
+  for (const c of W.cracks) { if (c.k > 0) { c.k = Math.min(1, c.k + dt * 1.6); c.life -= dt; } const open = c.k > 0 ? 1 - Math.pow(1 - c.k, 3) : 0; c.d.scale.setScalar(.01 + open * c.size); const life = c.life || 0; c.m.opacity = open * (life > 0 ? .42 + pulse * .18 : Math.max(0, .42 + life * .14)); c.d.visible = c.m.opacity > .002; if (c.life < -3) { c.k = 0; c.m.opacity = 0; } }
   W.boltMat.opacity = Math.max(0, W.boltMat.opacity - dt * 4);
   W.react = Math.max(0, W.react - dt * 1.4);
 }
