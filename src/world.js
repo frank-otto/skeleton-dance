@@ -61,11 +61,14 @@ function crackTexture(seed) { const [c, g] = cv(512, 512), r = rnd(seed); g.line
   for (let k = 0; k < 9; k++) branch(256, 256, k / 9 * Math.PI * 2 + r() * .3, 150 + r() * 80, 7, 0);
   const t = new THREE.CanvasTexture(c); return t; }
 function moonTexture() { const [c, g] = cv(512, 512); const r = rnd(42), n = noise2(77); const im = g.createImageData(512, 512);
-  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) { const dx = x - 256, dy = y - 256, d = Math.hypot(dx, dy) / 200; const i = (y * 512 + x) * 4; if (d < 1) { const v = n(x / 40, y / 40), limb = Math.sqrt(1 - d * d); const l = (.62 + v * .3) * (.55 + .45 * limb); im.data[i] = 225 * l; im.data[i + 1] = 228 * l; im.data[i + 2] = 236 * l; im.data[i + 3] = 255; }
-    else { const h = Math.max(0, 1 - (d - 1) / 1.5); im.data[i] = 150; im.data[i + 1] = 160; im.data[i + 2] = 210; im.data[i + 3] = 255 * h * h * .35; } }
-  g.putImageData(im, 0, 0); for (let k = 0; k < 18; k++) { const a = r() * 6.28, rr = r() * 170, s = 6 + r() * 26; g.fillStyle = `rgba(60,62,80,${.12 + r() * .15})`; g.beginPath(); g.arc(256 + Math.cos(a) * rr, 256 + Math.sin(a) * rr, s, 0, 7); g.fill(); }
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) { const dx = x - 256, dy = y - 256, d = Math.hypot(dx, dy) / 150; const i = (y * 512 + x) * 4; if (d < 1) { const v = n(x / 40, y / 40), limb = Math.sqrt(1 - d * d); const l = (.62 + v * .3) * (.55 + .45 * limb); im.data[i] = 225 * l; im.data[i + 1] = 228 * l; im.data[i + 2] = 236 * l; im.data[i + 3] = 255; }
+    else { const h = Math.max(0, 1 - (d - 1) / .69); im.data[i] = 150; im.data[i + 1] = 160; im.data[i + 2] = 210; im.data[i + 3] = 255 * h * h * .35; } }
+  g.putImageData(im, 0, 0); for (let k = 0; k < 18; k++) { const a = r() * 6.28, rr = r() * 128, s = 5 + r() * 19; g.fillStyle = `rgba(60,62,80,${.12 + r() * .15})`; g.beginPath(); g.arc(256 + Math.cos(a) * rr, 256 + Math.sin(a) * rr, s, 0, 7); g.fill(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
-function cloudTexture(seed) { const [c, g] = cv(512, 256), r = rnd(seed); for (let i = 0; i < 60; i++) { const x = 60 + r() * 392, y = 90 + r() * 90 - Math.abs(x - 256) * .1, s = 30 + r() * 70; const gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, 'rgba(255,255,255,.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256); } return new THREE.CanvasTexture(c); }
+function cloudTexture(seed) { const [c, g] = cv(512, 256), r = rnd(seed); for (let i = 0; i < 60; i++) { const x = 60 + r() * 392, y = 90 + r() * 90 - Math.abs(x - 256) * .1, s = 30 + r() * 70; const gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, 'rgba(255,255,255,.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256); }
+  // feather every edge so the cloud planes never show a hard rectangle against the sky
+  g.globalCompositeOperation = 'destination-in'; const m = g.createRadialGradient(256, 128, 30, 256, 128, 250); m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(.62, 'rgba(0,0,0,.85)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+  g.save(); g.translate(256, 128); g.scale(1, .5); g.translate(-256, -128); g.fillStyle = m; g.fillRect(-300, -300, 1112, 856); g.restore(); g.globalCompositeOperation = 'source-over'; return new THREE.CanvasTexture(c); }
 
 export const FLOOR_R = 4.3;
 export function createWorld(renderer, q, seed = 9) {
@@ -77,7 +80,7 @@ export function createWorld(renderer, q, seed = 9) {
     for (let i = 0; i < 900; i++) { const y = r() * 330, a = r() * r() * .9; g.fillStyle = `rgba(220,225,255,${a})`; g.fillRect(r() * 1024, y, r() < .1 ? 2 : 1, r() < .1 ? 2 : 1); }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; const sky = new THREE.Mesh(new THREE.SphereGeometry(70, 32, 16), new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, depthWrite: false })); sky.position.y = -8; S.add(sky); W.sky = sky; }
   // moon + halo
-  { const m = new THREE.Mesh(new THREE.PlaneGeometry(13, 13), new THREE.MeshBasicMaterial({ map: moonTexture(), transparent: true, fog: false, depthWrite: false, color: '#c9cde0' })); m.position.set(6, 15, -48); m.lookAt(0, 2, 8); S.add(m); W.moonDisc = m; }
+  { const m = new THREE.Mesh(new THREE.PlaneGeometry(17, 17), new THREE.MeshBasicMaterial({ map: moonTexture(), transparent: true, fog: false, depthWrite: false, color: '#c9cde0' })); m.position.set(6, 15, -48); m.lookAt(0, 2, 8); S.add(m); W.moonDisc = m; }
   for (let i = 0; i < 6; i++) { const cl = new THREE.Mesh(new THREE.PlaneGeometry(26, 13), new THREE.MeshBasicMaterial({ map: cloudTexture(seed + i), transparent: true, opacity: .4, fog: false, depthWrite: false, color: '#5a5f80' })); cl.position.set(-30 + i * 12 + r() * 6, 11 + r() * 8, -44 + r() * 4); cl.lookAt(0, 4, 10); S.add(cl); W.clouds.push({ m: cl, sp: .25 + r() * .3, x0: cl.position.x }); }
   // ground
   const gt = groundTextures(seed); const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 64), new THREE.MeshStandardMaterial({ map: gt.map, normalMap: gt.normal, normalScale: new THREE.Vector2(.8, .8), roughness: .95, color: '#9aa0a0' })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; S.add(ground);
