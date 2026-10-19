@@ -415,7 +415,9 @@ function step(dt) {
   const vy = pt ? (st === 'play' ? .1 : st === 'build' ? .14 : .2) : st === 'build' ? .1 : 0; const kv = 1 - Math.exp(-dt * 2.5); S.vx = lerp(S.vx || 0, vx, kv); S.vy = lerp(S.vy || 0, vy, kv);
   camera.setViewOffset(VW, VH, S.vx * VW, S.vy * VH, VW, VH);
   const k = 1 - Math.exp(-dt * 1.8); camPos.lerp(_v, k); look.lerp(_l, k); keepClear(camPos); camera.position.copy(camPos);
-  if (S.shake > .01) camera.position.add(new THREE.Vector3(rng() - .5, rng() - .5, 0).multiplyScalar(S.shake * .06));
+  if (window.__sdCam) { const o = window.__sdCam; camPos.set(...o.p); look.set(...o.l); camera.position.copy(camPos); if (o.fov) { camera.fov = o.fov; camera.updateProjectionMatrix(); S.fovO = 1; } } // scripted camera (video opening only)
+  else if (S.fovO) { const f0 = portrait() ? 62 : 45; camera.fov = lerp(camera.fov, f0, 1 - Math.exp(-dt * 2.5)); if (Math.abs(camera.fov - f0) < .05) { camera.fov = f0; S.fovO = 0; } camera.updateProjectionMatrix(); }
+  if (S.shake > .01) camera.position.lerp(look, Math.min(.08, S.shake * .05)); // impact = smooth scale punch toward the crew, never a jittery screen shake
   camera.lookAt(look); camera.updateMatrixWorld(); S.shake *= Math.exp(-dt * 6);
   W.energy = S.energy; updateWorld(W, S.gt, dt, beat);
   bloom.strength = (S.state === 'menu' || S.state === 'end' ? .2 : .32) * QUALITY[S.q].bloom;
@@ -442,5 +444,6 @@ window.__sd = { S, start, end, step: (dt, n = 1) => { for (let i = 0; i < n; i++
   chart: () => chart.map(n => ({ t: n.t, lane: n.lane, m: n.m, hit: n.hit, missed: n.missed })), press: lanePress, lanes: () => D().lanes, laneScreen, next: () => chart.find(n => !n.hit && !n.missed),
   crew: () => ALL.map(s => ({ st: s.state, x: +s.root.position.x.toFixed(2), y: +s.B.hips.position.y.toFixed(2), z: +s.root.position.z.toFixed(2), mv: s.move, vis: s.root.visible })), lead: () => ({ st: lead.state, mv: lead.move, jaw: lead.B.jaw.rotation.x }),
   cam: () => ({ p: camera.position.toArray(), near: camera.near }), camClear: () => Math.min(...W.colliders.map(c => { _v.subVectors(camera.position, c.p); _v.y *= .5; return _v.length() - c.r; })),
+  bolt: (x = .65) => { const q = [x, .3]; let i = 0; lightning(W, () => i < q.length ? q[i++] : rng()); A.sfx.thunder(); }, crack: i => { openCrack(W, i); A.sfx.crack(); W.fogBurst = 1; }, play: A.play, sfx: A.sfx, leadSlot: () => lead.slot.toArray(),
   songs: SONG_ORDER, diff: () => S.diff, addMove, perform, cycleForm, randomRoutine, world: W, fps, layout: () => ({ ...LG, ctx: undefined }), finaleAt: () => S.finale, songLen: () => song && song.len2, _dbg: { scene, camera, composer, bloom, F } };
 document.body.classList.add('ready');
