@@ -2,7 +2,7 @@
 
 A cinematic 3D Halloween dance battle. Midnight on a moonlit graveyard: a lead skeleton in a top hat claws its way up through the cracking flagstone dance floor – and the better you dance, the more of the dead climb out of their graves to join the crew. Hit the falling bone arrows in time with Saint-Saëns' *Danse macabre*; every hit is a dance move, combos raise up to 12 more skeletons, crack the ground open, burst the fog and call down lightning, until the full crew of 13 strikes a Thriller-style claw formation.
 
-**Play:** https://frank-otto.github.io/skeleton-dance/
+**Play:** [online version (GitHub Pages)](https://frank-otto.github.io/skeleton-dance/)
 
 ## How to play
 - **Dance battle:** arrows fall down four lanes onto the targets. Press **← ↓ ↑ →** (or **D F J K**, or 1–4) or tap the lanes. Perfect / Great / Good / Miss, combo multiplier, accuracy and a grade from S to D. The lead skeleton performs the move of each arrow (step left/right, jump, shake) and the crew follows in a ripple; every 12 combo they throw a signature move (spin, can-can, skull toss, rib xylophone, claws).
