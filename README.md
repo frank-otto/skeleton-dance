@@ -14,7 +14,7 @@ Music: three acts of *Danse macabre* (C. Saint-Saëns, 1874, public domain) in o
 
 Difficulty **Easy / Medium / Hard** (fall speed, tempo, arrow density, timing windows, ×1–1.5 points), remembered with a highscore per act and difficulty. **Kids mode:** 3 big lanes, slower, generous timing, can never fail, always at least grade B.
 
-Extras: English by default with a **DE** toggle (remembered), shareable **score card** (PNG, 1080×1350, default name "Player"), **quality levels** (Low / Normal / High / Ultra, careful auto step-down), mobile portrait layout, a dancing crew in the menu.
+Extras: the language follows your phone or browser (German devices get German, everything else English), with a small **DE/EN** toggle (remembered), shareable **score card** (PNG, 1080×1350, default name "Player"), **quality levels** (Low / Normal / High / Ultra, careful auto step-down), mobile portrait layout, a dancing crew in the menu.
 
 ## Tech
 Three.js (WebGL): 13 rigged skeletons (SkinnedMesh with 20 bones each – lathe-turned long bones, ribs, vertebrae, pelvis, hands, feet, a modelled skull with a hinged, clacking jaw), procedural pose library with crossfades, a flagstone plaza with normal maps, 12 graves that crumble, a columned crypt, dead trees, iron fence, flickering lanterns, layered ground fog, wisps, crack decals, lightning ribbons, moving stage lights, PCF shadows, ACES tone mapping and a restrained bloom (no glare; dimmed under menus). The camera moves on an arc in front of the crew and is pushed out of every prop. The arrow highway is a 2D overlay so it is never bloomed. Sample-accurate WebAudio scheduling with a generated convolution reverb. Bundled with esbuild into one classic script, so it runs straight from `file://`.
@@ -24,6 +24,7 @@ Open `index.html` (on a Mac you can also double-click `start.command`). Rebuild 
 
 ## Tests
 `python3 test/test_game.py` (Playwright + Chrome, headless WebGL, served over a local web server): keyboard and touch hits, judgements, misses and failing, crew rising and big moments, finale and grades, highscores, PNG card, EN/DE memory, difficulties, kids mode, Dance Builder, quality levels and auto quality, mobile layout, glare and camera checks, no console errors, no synth sounds.
+`python3 test/test_mobile.py`: 8 phone configurations (iPhone 13 / 8 / SE in WebKit, Pixel 7 in Chromium, portrait and landscape). It checks that every button is tappable and at least 44 px, that nothing is cut off or scrolls, the auto language, one tap to play with sound, touch control and flat memory.
 
 ## Credits
 All sounds are recorded CC0 samples – orchestra from the VSCO 2 Community Edition, effects from Freesound and Kenney (IDs in `LICENSES/SOUNDS.md`). Three.js (MIT). Font: Fredoka (SIL Open Font License 1.1).

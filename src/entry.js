@@ -28,8 +28,10 @@ const LANE_DIR = { 4: ['left', 'down', 'up', 'right'], 3: ['left', 'up', 'right'
 const DIR_COL = { left: '#c79bff', down: '#5fd3ff', up: '#7dffb4', right: '#ffb65e' };
 const MOVE_EMO = { left: '⬅️', right: '➡️', up: '⬆️', down: '⬇️', spin: '🌀', claw: '🧟', skull: '💀', kick: '🦵', wave: '👋', ribs: '🦴' };
 const SIG = ['spin', 'skull', 'kick', 'wave', 'ribs', 'claw'];
+// language follows the phone/browser (German devices → DE, else EN) until the player picks one with the DE/EN toggle
+function autoLang() { try { const l = (navigator.languages && navigator.languages[0]) || navigator.language || ''; return /^de\b/i.test(l) ? 'de' : 'en'; } catch (e) { return 'en'; } }
 const S = {
-  state: 'menu', mode: 'play', lang: ls.get('sd-lang', 'en'), diff: ls.get('sd-diff', 'medium'), kids: ls.get('sd-kids', '0') === '1', song: ls.get('sd-song', 'midnight'), q: ls.get('sd-q', ''), qUser: !!ls.get('sd-q', ''),
+  state: 'menu', mode: 'play', lang: (ls.get('sd-lang', '') || autoLang()), diff: ls.get('sd-diff', 'medium'), kids: ls.get('sd-kids', '0') === '1', song: ls.get('sd-song', 'midnight'), q: ls.get('sd-q', ''), qUser: !!ls.get('sd-q', ''),
   score: 0, gt: 0, combo: 0, maxCombo: 0, hits: 0, judged: 0, accSum: 0, perfect: 0, groove: 1, songT: 0, newBest: false, best: 0, shake: 0, failed: false, finale: 0, crewN: 0, pel: 0, pressed: 0,
   name: ls.get('sd-name', 'Player') || 'Player', routine: [], formation: 'wedge', performing: false, energy: .3, swoop: 0, sigI: 0
 };
@@ -50,7 +52,7 @@ const camera = new THREE.PerspectiveCamera(45, 1, .1, 120);
 const F = createFX(scene, W.soft, W.smokeTex);
 let composer, bloom;
 function buildComposer() {
-  if (composer) composer.dispose();
+  if (composer) { composer.passes.forEach(p => p.dispose && p.dispose()); composer.dispose(); } // passes (bloom render targets) are not freed by composer.dispose()
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
   bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .32 * QUALITY[S.q].bloom, .4, .88); composer.addPass(bloom); composer.addPass(new OutputPass());
 }
@@ -440,7 +442,7 @@ let last = performance.now();
 function frameLoop(now) { const dt = Math.max(0, (now - last) / 1000); last = Math.max(last, now); if (!window.__sdManual) { step(dt); render(); fpsTick(dt); } else render(); requestAnimationFrame(frameLoop); }
 requestAnimationFrame(frameLoop);
 const laneScreen = i => ({ x: laneX(i), y: LG.hit });
-window.__sd = { S, start, end, step: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); render(); }, stepq: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); }, log: A.log, quality: q => q ? applyQuality(q, true) : S.q, renderer,
+window.__sd = { S, audioState: () => A.audioState(), start, end, step: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); render(); }, stepq: (dt, n = 1) => { for (let i = 0; i < n; i++) step(dt); }, log: A.log, quality: q => q ? applyQuality(q, true) : S.q, renderer,
   chart: () => chart.map(n => ({ t: n.t, lane: n.lane, m: n.m, hit: n.hit, missed: n.missed })), press: lanePress, lanes: () => D().lanes, laneScreen, next: () => chart.find(n => !n.hit && !n.missed),
   crew: () => ALL.map(s => ({ st: s.state, x: +s.root.position.x.toFixed(2), y: +s.B.hips.position.y.toFixed(2), z: +s.root.position.z.toFixed(2), mv: s.move, vis: s.root.visible })), lead: () => ({ st: lead.state, mv: lead.move, jaw: lead.B.jaw.rotation.x }),
   cam: () => ({ p: camera.position.toArray(), near: camera.near }), camClear: () => Math.min(...W.colliders.map(c => { _v.subVectors(camera.position, c.p); _v.y *= .5; return _v.length() - c.r; })),

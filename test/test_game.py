@@ -168,7 +168,7 @@ async def main():
         check('touch: tapping lanes hits arrows', await pg.evaluate('__sd.S.hits') >= 6, await pg.evaluate('__sd.S.hits'))
         await bot(pg, 300); mp = await shot(pg, 'shot-mobile-play.png')
         bb = [await pg.eval_on_selector(s, 'e => { const r = e.getBoundingClientRect(); return [r.left, r.right, r.top, r.bottom]; }') for s in ['#hud', '#top']]
-        check('mobile HUD visible, inside the screen, not under the buttons', await pg.evaluate("getComputedStyle(hud).opacity") == '1' and bb[0][0] >= 0 and bb[0][1] <= bb[1][0] and bb[0][3] <= 844, bb)
+        check('mobile HUD visible, inside the screen, not under the buttons', await pg.evaluate("getComputedStyle(hud).opacity") == '1' and bb[0][0] >= 0 and (bb[0][1] <= bb[1][0] or bb[0][2] >= bb[1][3]) and bb[0][3] <= 844, bb)
         ls = [await pg.evaluate(f'__sd.laneScreen({i})') for i in range(4)]
         check('mobile: all lanes on screen', all(20 < l['x'] < 370 and 0 < l['y'] < 844 for l in ls), [round(l['x']) for l in ls])
         check('mobile play no glare', bright_share(mp) < .004)

@@ -29,7 +29,11 @@ function groundTextures(seed) { // mossy soil with grass tufts
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const v = n(x / 32, y / 32), m = n(x / 90 + 7, y / 90 + 3); const i = (y * S + x) * 4; const grass = m > .5;
     im.data[i] = grass ? 22 + v * 22 : 40 + v * 30; im.data[i + 1] = grass ? 34 + v * 30 : 30 + v * 22; im.data[i + 2] = grass ? 26 + v * 16 : 28 + v * 18; im.data[i + 3] = 255; const hh = v * 200; hm.data[i] = hm.data[i + 1] = hm.data[i + 2] = hh; hm.data[i + 3] = 255; }
   g.putImageData(im, 0, 0); hg.putImageData(hm, 0, 0);
-  for (let k = 0; k < 2600; k++) { const x = r() * S, y = r() * S, L = 3 + r() * 9; g.strokeStyle = `rgba(${40 + r() * 30},${60 + r() * 40},${40 + r() * 20},${.35 + r() * .4})`; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 4, y - L); g.stroke(); hg.strokeStyle = 'rgba(255,255,255,.4)'; hg.beginPath(); hg.moveTo(x, y); hg.lineTo(x, y - L); hg.stroke(); }
+  // grass tufts: draw all of them on the colour canvas first, then on the height canvas. Alternating draw calls between two
+  // 2D canvases makes WebKit (Safari / iOS) flush its canvas pipeline on every switch: 2600 tufts took ~90 s there and the page
+  // never finished loading. Same random sequence and same strokes per canvas as before, so the texture looks identical.
+  const tufts = []; for (let k = 0; k < 2600; k++) { const x = r() * S, y = r() * S, L = 3 + r() * 9; g.strokeStyle = `rgba(${40 + r() * 30},${60 + r() * 40},${40 + r() * 20},${.35 + r() * .4})`; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 4, y - L); g.stroke(); tufts.push(x, y, L); }
+  hg.strokeStyle = 'rgba(255,255,255,.4)'; for (let k = 0; k < tufts.length; k += 3) { const x = tufts[k], y = tufts[k + 1], L = tufts[k + 2]; hg.beginPath(); hg.moveTo(x, y); hg.lineTo(x, y - L); hg.stroke(); }
   return { map: tex(c, true, [14, 14]), normal: tex(normalFrom(hc, 3), false, [14, 14]) };
 }
 function flagTextures(seed) { // circular flagstone plaza: radial rings of worn stones, moss in the joints, a sun/moon inlay
